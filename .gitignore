@@ -1,0 +1,26 @@
+# Maven & Java
+target/
+*.jar
+*.war
+*.ear
+*.class
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Node & Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# IDEs & OS
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db

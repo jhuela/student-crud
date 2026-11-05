@@ -1,4 +1,26 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/santos/students';
+/**
+ * Resolve the API base endpoint dynamically.
+ * Supports:
+ * - Local Vite dev proxy: '/santos/students'
+ * - Render / Production env var: 'https://<backend-domain>.onrender.com'
+ */
+function getApiEndpoint() {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && envUrl.trim()) {
+    let clean = envUrl.trim().replace(/\/+$/, '');
+    if (!clean.endsWith('/santos/students')) {
+      clean = `${clean}/santos/students`;
+    }
+    if (!/^https?:\/\//i.test(clean) && !clean.startsWith('/')) {
+      clean = `https://${clean}`;
+    }
+    return clean;
+  }
+  // Local Vite proxy fallback
+  return '/santos/students';
+}
+
+const API_BASE_URL = getApiEndpoint();
 
 /**
  * Service to interact with the Student CRUD Spring Boot REST API.
