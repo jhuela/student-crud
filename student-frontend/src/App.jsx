@@ -4,6 +4,7 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import ConfirmModal from './components/ConfirmModal';
 import AlertBanner from './components/AlertBanner';
+import ApiConfigModal from './components/ApiConfigModal';
 import { studentService } from './services/studentService';
 import './App.css';
 
@@ -21,6 +22,9 @@ export default function App() {
   const [deletingStudent, setDeletingStudent] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // API Config modal state
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+
   // Helper to trigger alert banners
   const showAlert = (message, type = 'success') => {
     setAlert({ message, type });
@@ -30,12 +34,12 @@ export default function App() {
     setAlert(null);
   };
 
-  // Auto-dismiss alert after 4 seconds
+  // Auto-dismiss alert after 6 seconds (if success)
   useEffect(() => {
-    if (alert) {
+    if (alert && alert.type === 'success') {
       const timer = setTimeout(() => {
         setAlert(null);
-      }, 4000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [alert]);
@@ -43,20 +47,21 @@ export default function App() {
   // Load students from Spring Boot backend
   const loadStudents = useCallback(async (isInitial = false) => {
     setLoading(true);
+    const targetUrl = studentService.getEndpoint();
     try {
       const data = await studentService.getAllStudents();
-      // Handle both array and iterable formats
       const studentArray = Array.isArray(data) ? data : (data ? Object.values(data) : []);
-      // Sort students by id ascending or descending (id descending puts newest at top)
       studentArray.sort((a, b) => (b.id || 0) - (a.id || 0));
       setStudents(studentArray);
       if (!isInitial) {
         showAlert('Student records refreshed.', 'success');
+      } else {
+        dismissAlert();
       }
     } catch (err) {
       console.error('Error fetching students:', err);
       showAlert(
-        `Failed to connect to student API: ${err.message}. Please check if the Spring Boot backend is running on port 8080.`,
+        `Failed to connect to student API at ${targetUrl}: ${err.message}. If deploying on Render, make sure your backend URL is set and has finished waking up.`,
         'error'
       );
     } finally {
@@ -91,11 +96,9 @@ export default function App() {
     setIsSubmitting(true);
     try {
       if (editingStudent && editingStudent.id) {
-        // Update existing student
         const updated = await studentService.updateStudent(editingStudent.id, formData);
         showAlert(`Student ${updated.firstname} ${updated.lastname} updated successfully!`, 'success');
       } else {
-        // Create new student
         const created = await studentService.createStudent(formData);
         showAlert(`Student ${created.firstname} ${created.lastname} added successfully!`, 'success');
       }
@@ -143,11 +146,16 @@ export default function App() {
         onOpenAddModal={handleOpenAddModal}
         onRefresh={() => loadStudents(false)}
         loading={loading}
+        onOpenConfig={() => setIsConfigOpen(true)}
       />
 
       <main className="main-content">
         <div className="container">
-          <AlertBanner alert={alert} onDismiss={dismissAlert} />
+          <AlertBanner 
+            alert={alert} 
+            onDismiss={dismissAlert} 
+            onOpenConfig={() => setIsConfigOpen(true)}
+          />
 
           <StudentList
             students={students}
@@ -175,6 +183,13 @@ export default function App() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCloseDeleteModal}
         isDeleting={isDeleting}
+      />
+
+      {/* API Configuration Modal */}
+      <ApiConfigModal
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        onSaved={() => loadStudents(false)}
       />
 
       <footer className="app-footer">

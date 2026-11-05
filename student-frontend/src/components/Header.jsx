@@ -1,7 +1,13 @@
 import React from 'react';
-import { GraduationCap, UserPlus, RefreshCw } from 'lucide-react';
+import { GraduationCap, UserPlus, RefreshCw, Settings } from 'lucide-react';
 
-export default function Header({ studentCount, onOpenAddModal, onRefresh, loading }) {
+export default function Header({ 
+  studentCount, 
+  onOpenAddModal, 
+  onRefresh, 
+  loading,
+  onOpenConfig,
+}) {
   return (
     <header className="app-header">
       <div className="header-container">
@@ -19,12 +25,22 @@ export default function Header({ studentCount, onOpenAddModal, onRefresh, loadin
           <button 
             type="button" 
             className="btn btn-secondary" 
+            onClick={onOpenConfig}
+            title="Configure Backend API URL"
+          >
+            <Settings size={16} />
+            <span className="hide-on-mobile">API Config</span>
+          </button>
+
+          <button 
+            type="button" 
+            className="btn btn-secondary" 
             onClick={onRefresh} 
             disabled={loading}
             title="Refresh Student List"
           >
             <RefreshCw size={16} className={loading ? 'spin' : ''} />
-            <span>Refresh</span>
+            <span className="hide-on-mobile">Refresh</span>
           </button>
 
           <button 
